@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/whittlingo/fun/lib/internal/test"
 )
 
 type TestCase struct {
@@ -22,7 +23,7 @@ type TestCase struct {
 	expectedError error
 }
 
-func test(name, typ, vrb string, err error) TestCase {
+func testCase(name, typ, vrb string, err error) TestCase {
 	return TestCase{
 		name:          name,
 		typ:           typ,
@@ -32,7 +33,7 @@ func test(name, typ, vrb string, err error) TestCase {
 
 func TestOptions(t *testing.T) {
 	for _, test := range []TestCase{
-		test("important", "Important", "i", nil),
+		testCase("important", "Important", "i", nil),
 	} {
 		t.Run(test.name, test.Run)
 	}
@@ -40,10 +41,8 @@ func TestOptions(t *testing.T) {
 
 func (tc TestCase) Run(t *testing.T) {
 	var (
-		// e.g. important_options.go
-		outputFixtureName = tc.name + "_options.go"
 		// read expected output fixture file
-		expectedOutput = mustRead(fixturePath(outputFixtureName))
+		fi = test.Fixture(t, tc.name)
 		// construct options type to test
 		options = New(tc.name, tc.typ)
 		// output buffer to populate
@@ -57,7 +56,7 @@ func (tc TestCase) Run(t *testing.T) {
 		require.Equal(t, tc.expectedError, err)
 		assert.Empty(t, output.String())
 	} else {
-		assert.Equal(t, expectedOutput, output.String())
+		assert.Equal(t, fi.Output, output.String())
 	}
 }
 
