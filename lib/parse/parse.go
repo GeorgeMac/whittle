@@ -1,25 +1,28 @@
 package parse
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
 var (
-	ErrTypeNotFound       = errors.New("type not found")
 	ErrExpectedOnePackage = errors.New("expected to find one package")
+
+	optTagMatcher = regexp.MustCompile(`opts(?:\:"(.+?)")?`)
 )
 
 // Package contains the packages name and the types
 // relevant for generating against
 type Package struct {
 	Name  string
-	Types []Type
+	Types map[string]Type
 }
 
 // Type represents a struct type with a name
@@ -50,12 +53,12 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 	}
 
 	if len(parsed) != 1 {
-		return pkg, errors.Wrapf(ErrExpectedOnePackage, "found %d", len(parsed))
+		return pkg, errors.Wrapf(ErrExpectedOnePackage, "found %d packages", len(parsed))
 	}
 
 	// loop over found packages in dir
 	for name, ppkg := range parsed {
-		pkg = Package{Name: name}
+		pkg = Package{Name: name, Types: map[string]Type{}}
 
 		for _, fi := range ppkg.Files {
 			// loop over files declerations
@@ -67,16 +70,33 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 						// if the spec is a type definition
 						if tspec, ok := spec.(*ast.TypeSpec); ok {
 							// if spec is for a struct type
-							if _, ok := tspec.Type.(*ast.StructType); ok {
-								remainingTypes := remove(types, tspec.Name.Name)
-								// if we found a type
-								if len(types) > len(remainingTypes) {
-									types = remainingTypes
-
-									pkg.Types = append(pkg.Types, Type{
-										Name: tspec.Name.Name,
-									})
+							if str, ok := tspec.Type.(*ast.StructType); ok {
+								typ := Type{
+									Name: tspec.Name.Name,
 								}
+
+								for _, field := range str.Fields.List {
+									if tag := field.Tag; tag != nil {
+										if parts := optTagMatcher.FindStringSubmatch(tag.Value); len(parts) > 1 {
+											var (
+												name   = field.Names[0].Name
+												method = parts[1]
+											)
+
+											if method == "" {
+												// field -> WithField
+												method = fmt.Sprintf("With%s", strings.Title(name))
+											}
+
+											typ.Fields = append(typ.Fields, Field{
+												Name:       name,
+												OptionName: method,
+											})
+										}
+									}
+								}
+
+								pkg.Types[tspec.Name.Name] = typ
 							}
 						}
 					}
@@ -86,17 +106,4 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 	}
 
 	return
-}
-
-func remove(haystack []string, needle string) []string {
-	for i, s := range haystack {
-		if s == needle {
-			slice := make([]string, 0, len(haystack))
-			slice = append(slice, haystack[0:i]...)
-			slice = append(slice, haystack[i+1:]...)
-			return slice
-		}
-	}
-
-	return haystack
 }

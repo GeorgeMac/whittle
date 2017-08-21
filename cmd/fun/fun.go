@@ -27,12 +27,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	structType, ok := pkg.Types[typ]
+	if !ok {
+		log.Fatalf("cannot find type %q", typ)
+	}
+
 	fi, err := os.Create(fmt.Sprintf("./%s_options.go", pkg.Name))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if _, err := options.New(pkg.Name, pkg.Types[0].Name).WriteTo(fi); err != nil {
+	if _, err := options.New(pkg.Name, structType.Name).WriteTo(fi); err != nil {
 		log.Fatal(err)
 	}
 }

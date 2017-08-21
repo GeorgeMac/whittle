@@ -22,9 +22,23 @@ func TestParse(t *testing.T) {
 			typ:  "Important",
 			pkg: Package{
 				Name: "important",
-				Types: []Type{
-					{
+				Types: map[string]Type{
+					"Important": {
 						Name: "Important",
+						Fields: []Field{
+							{
+								Name:       "field",
+								OptionName: "WithField",
+							},
+							{
+								Name:       "attribute",
+								OptionName: "WithAttribute",
+							},
+							{
+								Name:       "mapOfThings",
+								OptionName: "WithThings",
+							},
+						},
 					},
 				},
 			},

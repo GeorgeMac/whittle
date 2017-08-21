@@ -4,7 +4,7 @@ package important
 
 // Important
 type Important struct {
-	Field       string            `opts`
-	Attribute   int               `opts`
-	MapOfThings map[string]string `opts:"WithThings"`
+	field       string            `opts`
+	attribute   int               `opts`
+	mapOfThings map[string]string `opts:"WithThings"`
 }
