@@ -19,21 +19,31 @@ type TestCase struct {
 	name string
 	// input: type names
 	typ string
+	// input: functional options to render
+	funcs []Option
 	// output: an expected error (if their is one expected)
 	expectedError error
 }
 
-func testCase(name, typ, vrb string, err error) TestCase {
-	return TestCase{
-		name:          name,
-		typ:           typ,
-		expectedError: err,
-	}
-}
-
 func TestOptions(t *testing.T) {
 	for _, test := range []TestCase{
-		testCase("important", "Important", "i", nil),
+		{"important", "Important", []Option{
+			{
+				Name:     "WithField",
+				Type:     "string",
+				Variable: "field",
+			},
+			{
+				Name:     "WithAttribute",
+				Type:     "int",
+				Variable: "attribute",
+			},
+			{
+				Name:     "WithThings",
+				Type:     "map[string]string",
+				Variable: "mapOfThings",
+			},
+		}, nil},
 	} {
 		t.Run(test.name, test.Run)
 	}
@@ -44,7 +54,7 @@ func (tc TestCase) Run(t *testing.T) {
 		// read expected output fixture file
 		fi = test.Fixture(t, tc.name)
 		// construct options type to test
-		options = New(tc.name, tc.typ)
+		options = New(tc.name, tc.typ, tc.funcs...)
 		// output buffer to populate
 		output = &bytes.Buffer{}
 	)
@@ -56,6 +66,8 @@ func (tc TestCase) Run(t *testing.T) {
 		require.Equal(t, tc.expectedError, err)
 		assert.Empty(t, output.String())
 	} else {
+		// require the error to be nil
+		require.Nil(t, err)
 		assert.Equal(t, fi.Output, output.String())
 	}
 }

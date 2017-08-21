@@ -12,15 +12,24 @@ import (
 // It writes out Go code representation of functional options
 // for the provided package, type and variable name
 type Options struct {
-	Package string
-	Type    string
+	Package   string
+	Type      string
+	Functions []Option
+}
+
+// Option is a representation of the functional option to be rendered
+type Option struct {
+	Name     string
+	Type     string
+	Variable string
 }
 
 // New returns a new Options type
-func New(pkg, typ string) *Options {
+func New(pkg, typ string, opts ...Option) *Options {
 	return &Options{
-		Package: pkg,
-		Type:    typ,
+		Package:   pkg,
+		Type:      typ,
+		Functions: opts,
 	}
 }
 
@@ -61,5 +70,13 @@ func (o Options) Apply({{ .Var }} *{{ .Type }}) {
         opt({{ .Var }})
     }
 }
+
+{{ range .Functions }}
+func {{ .Name }}({{ .Variable }} {{ .Type }}) Option {
+    return func({{ $.Var }} *{{ $.Type }}) {
+        {{ $.Var }}.{{ .Variable }} = {{ .Variable }}
+    }
+}
+{{ end }}
 `))
 )
