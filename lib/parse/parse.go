@@ -64,9 +64,9 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 		pkg = Package{Name: name, Types: map[string]Type{}}
 
 		for _, fi := range ppkg.Files {
-			// loop over files declerations
+			// loop over files declarations
 			for _, decl := range fi.Decls {
-				// if decleration is a general declaration
+				// if declaration is a general declaration
 				if gdecl, ok := decl.(*ast.GenDecl); ok {
 					// loop over general declarations specs
 					for _, spec := range gdecl.Specs {

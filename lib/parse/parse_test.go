@@ -3,9 +3,9 @@ package parse
 import (
 	"testing"
 
+	"github.com/georgemac/whittle/lib/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/georgemac/whittle/lib/internal/test"
 )
 
 type TestCase struct {
