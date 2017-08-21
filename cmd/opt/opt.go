@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/whittlingo/fun/lib/options"
-	"github.com/whittlingo/fun/lib/parse"
+	"github.com/georgemac/whittle/lib/options"
+	"github.com/georgemac/whittle/lib/parse"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/whittlingo/fun/lib/internal/test"
+	"github.com/georgemac/whittle/lib/internal/test"
 )
 
 type TestCase struct {
