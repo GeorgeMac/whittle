@@ -28,14 +28,17 @@ func TestParse(t *testing.T) {
 						Fields: []Field{
 							{
 								Name:       "field",
+								Type:       "string",
 								OptionName: "WithField",
 							},
 							{
 								Name:       "attribute",
+								Type:       "int",
 								OptionName: "WithAttribute",
 							},
 							{
 								Name:       "mapOfThings",
+								Type:       "map[string]string",
 								OptionName: "WithThings",
 							},
 						},

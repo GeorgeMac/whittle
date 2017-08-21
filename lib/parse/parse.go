@@ -36,6 +36,7 @@ type Type struct {
 // a name and function option name to be used
 type Field struct {
 	Name       string
+	Type       string
 	OptionName string
 }
 
@@ -90,6 +91,7 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 
 											typ.Fields = append(typ.Fields, Field{
 												Name:       name,
+												Type:       typeString(field.Type),
 												OptionName: method,
 											})
 										}
@@ -106,4 +108,23 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 	}
 
 	return
+}
+
+func typeString(e ast.Expr) string {
+	switch typ := e.(type) {
+	case *ast.Ident:
+		// catches type identifiers like int, string and bool
+		return typ.String()
+	case *ast.MapType:
+		key := typeString(typ.Key)
+		value := typeString(typ.Value)
+
+		return fmt.Sprintf("map[%s]%s", key, value)
+	case *ast.ArrayType:
+		elemType := typeString(typ.Elt)
+
+		return fmt.Sprintf("[]%s", elemType)
+	}
+
+	return "unknown!"
 }
