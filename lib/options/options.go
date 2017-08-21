@@ -43,8 +43,8 @@ func (o Options) Var() string {
 	return strings.ToLower(o.Type)[:1]
 }
 
-// Write serializes the options type to the writer
-func (o *Options) WriteTo(w io.Writer) (int, error) {
+// WriteTo serializes the options type to the writer
+func (o *Options) WriteTo(w io.Writer) (int64, error) {
 	buf := &bytes.Buffer{}
 	if err := optionsTmpl.Execute(buf, o); err != nil {
 		return 0, err
@@ -55,7 +55,8 @@ func (o *Options) WriteTo(w io.Writer) (int, error) {
 		return 0, err
 	}
 
-	return w.Write(data)
+	n, err := w.Write(data)
+	return int64(n), err
 }
 
 var (

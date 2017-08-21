@@ -13,6 +13,8 @@ import (
 )
 
 var (
+	// ErrExpectedOnePackage is returned when multiple packages are found for the
+	// provided directory location
 	ErrExpectedOnePackage = errors.New("expected to find one package")
 
 	optTagMatcher = regexp.MustCompile(`opts(?:\:"(.+?)")?`)

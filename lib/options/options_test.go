@@ -2,14 +2,11 @@ package options
 
 import (
 	"bytes"
-	"io/ioutil"
-	"log"
-	"path/filepath"
 	"testing"
 
+	"github.com/georgemac/whittle/lib/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/georgemac/whittle/lib/internal/test"
 )
 
 type TestCase struct {
@@ -70,17 +67,4 @@ func (tc TestCase) Run(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, fi.Output, output.String())
 	}
-}
-
-func mustRead(path string) string {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return string(data)
-}
-
-func fixturePath(path string) string {
-	return filepath.Join("testdata", path)
 }
