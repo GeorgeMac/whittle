@@ -74,37 +74,40 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 						if tspec, ok := spec.(*ast.TypeSpec); ok {
 							// if spec is for a struct type
 							if str, ok := tspec.Type.(*ast.StructType); ok {
-								typ := Type{
-									Name: tspec.Name.Name,
+								pkg.Types[tspec.Name.Name] = Type{
+									Name:   tspec.Name.Name,
+									Fields: fetchFields(str.Fields.List),
 								}
-
-								for _, field := range str.Fields.List {
-									if tag := field.Tag; tag != nil {
-										if parts := optTagMatcher.FindStringSubmatch(tag.Value); len(parts) > 1 {
-											var (
-												name   = field.Names[0].Name
-												method = parts[1]
-											)
-
-											if method == "" {
-												// field -> WithField
-												method = fmt.Sprintf("With%s", strings.Title(name))
-											}
-
-											typ.Fields = append(typ.Fields, Field{
-												Name:       name,
-												Type:       typeString(field.Type),
-												OptionName: method,
-											})
-										}
-									}
-								}
-
-								pkg.Types[tspec.Name.Name] = typ
 							}
 						}
 					}
 				}
+			}
+		}
+	}
+
+	return
+}
+
+func fetchFields(external []*ast.Field) (fields []Field) {
+	for _, field := range external {
+		if tag := field.Tag; tag != nil {
+			if parts := optTagMatcher.FindStringSubmatch(tag.Value); len(parts) > 1 {
+				var (
+					name   = field.Names[0].Name
+					method = parts[1]
+				)
+
+				if method == "" {
+					// field -> WithField
+					method = fmt.Sprintf("With%s", strings.Title(name))
+				}
+
+				fields = append(fields, Field{
+					Name:       name,
+					Type:       typeString(field.Type),
+					OptionName: method,
+				})
 			}
 		}
 	}
