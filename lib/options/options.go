@@ -62,10 +62,14 @@ func (o *Options) WriteTo(w io.Writer) (int64, error) {
 var (
 	optionsTmpl = template.Must(template.New("options").Parse(`package {{ .Package }}
 
+// Option is a functional option for the {{ .Type }} type
 type Option func(*{{ .Type }})
 
+// Options is a slice of Option types
 type Options []Option
 
+// Apply calls each option in order to
+// the supplied {{ .Type }} type
 func (o Options) Apply({{ .Var }} *{{ .Type }}) {
     for _, opt := range o {
         opt({{ .Var }})
@@ -73,6 +77,9 @@ func (o Options) Apply({{ .Var }} *{{ .Type }}) {
 }
 
 {{ range .Functions }}
+
+// {{ .Name }} sets the {{ .Variable }} {{ .Type }} on the
+// {{ $.Type }} type
 func {{ .Name }}({{ .Variable }} {{ .Type }}) Option {
     return func({{ $.Var }} *{{ $.Type }}) {
         {{ $.Var }}.{{ .Variable }} = {{ .Variable }}

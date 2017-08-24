@@ -65,6 +65,7 @@ func (tc TestCase) Run(t *testing.T) {
 	} else {
 		// require the error to be nil
 		require.Nil(t, err)
-		assert.Equal(t, fi.Output, output.String())
+		generated := output.String()
+		assert.Equal(t, fi.Output, generated)
 	}
 }
