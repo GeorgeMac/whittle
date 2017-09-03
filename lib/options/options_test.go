@@ -40,6 +40,16 @@ func TestOptions(t *testing.T) {
 				Type:     "map[string]string",
 				Variable: "mapOfThings",
 			},
+			{
+				Name:     "WithPointerToThing",
+				Type:     "*string",
+				Variable: "pointerToThing",
+			},
+			{
+				Name:     "WithPointerToStruct",
+				Type:     "*os.File",
+				Variable: "pointerToStruct",
+			},
 		}, nil},
 	} {
 		t.Run(test.name, test.Run)

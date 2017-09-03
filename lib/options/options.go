@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 // Options is a type which can be written to.
@@ -51,6 +53,11 @@ func (o *Options) WriteTo(w io.Writer) (int64, error) {
 	}
 
 	data, err := format.Source(buf.Bytes())
+	if err != nil {
+		return 0, err
+	}
+
+	data, err = imports.Process(o.Package, data, nil)
 	if err != nil {
 		return 0, err
 	}

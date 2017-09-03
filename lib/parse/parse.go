@@ -129,6 +129,10 @@ func typeString(e ast.Expr) string {
 		elemType := typeString(typ.Elt)
 
 		return fmt.Sprintf("[]%s", elemType)
+	case *ast.StarExpr:
+		return fmt.Sprintf("*%s", typeString(typ.X))
+	case *ast.SelectorExpr:
+		return fmt.Sprintf("%s.%s", typeString(typ.X), typ.Sel.String())
 	}
 
 	return "unknown!"
