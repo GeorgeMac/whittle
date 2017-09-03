@@ -41,6 +41,16 @@ func TestParse(t *testing.T) {
 								Type:       "map[string]string",
 								OptionName: "WithThings",
 							},
+							{
+								Name:       "pointerToThing",
+								Type:       "*string",
+								OptionName: "WithPointerToThing",
+							},
+							{
+								Name:       "pointerToStruct",
+								Type:       "*os.File",
+								OptionName: "WithPointerToStruct",
+							},
 						},
 					},
 				},
