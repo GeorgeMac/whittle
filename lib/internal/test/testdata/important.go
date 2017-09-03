@@ -2,7 +2,7 @@ package important
 
 import "os"
 
-// go:generate fun --include="Important"
+//go:generate whittle options -type Important
 
 // Important
 type Important struct {

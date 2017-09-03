@@ -1,10 +1,10 @@
-# Generator For Funtional `opt`ions 
+# Generator For Funtional Options 
 
 Opinionated Code Generators For Functional Options In Golang
 
 ## Usage
 
-`opt -type TypeToGenerateOptionsFor`
+`whittle options -type TypeToGenerateOptionsFor`
 
 ## Example
 
@@ -15,7 +15,7 @@ e.g. given package
 ```go
 package worker
 
-//go:generate opt -type Worker
+//go:generate whittle options -type Worker
 
 type Worker struct {
 	times     int    `opts`
@@ -79,3 +79,4 @@ func New(opts ...Option) *Worker {
 - [x] `lib/options`: support generation of provided options e.g. generate `func WithSomeFieldName(value string) Option`
 - [x] `cmd/fun`: update binary to support wiring new options together
 - [x] `cmd/opt`: rename `fun` to `opt` as it will now live as a sub-command of `whittle`
+- [x] `cmd/whittle/options`: renamed (again) to `options` for clarity
