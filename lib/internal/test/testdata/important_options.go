@@ -1,5 +1,7 @@
 package important
 
+import "os"
+
 // Option is a functional option for the Important type
 type Option func(*Important)
 
@@ -35,5 +37,21 @@ func WithAttribute(attribute int) Option {
 func WithThings(mapOfThings map[string]string) Option {
 	return func(i *Important) {
 		i.mapOfThings = mapOfThings
+	}
+}
+
+// WithPointerToThing sets the pointerToThing *string on the
+// Important type
+func WithPointerToThing(pointerToThing *string) Option {
+	return func(i *Important) {
+		i.pointerToThing = pointerToThing
+	}
+}
+
+// WithPointerToStruct sets the pointerToStruct *os.File on the
+// Important type
+func WithPointerToStruct(pointerToStruct *os.File) Option {
+	return func(i *Important) {
+		i.pointerToStruct = pointerToStruct
 	}
 }
