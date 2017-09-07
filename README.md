@@ -6,14 +6,16 @@ Opinionated Code Generators For Golang
 
 ## Commands
 
-1. [opt](./cmd/opt) for generating functional options for struct definitions 
+1. [options](./cmd/whittle/options) for generating functional options for struct definitions 
 
 e.g.
 
 ```go
-//go:generate opt -type TypeToGeneratorFor
+//go:generate whittle options -type TypeToGeneratorFor
 ```
 
-## Roadmap
+## Ideas Roadmap
 
-- [ ] `cmd/opt` to become `whittle opt` sub-command
+- [ ] explore generation of implementations for interfaces, with quick mock generation in mind.
+- [ ] quick "constructor" style function insertion, with support for functional options.
+- [ ] generation of table drive test cases
