@@ -9,17 +9,21 @@ import (
 )
 
 type TestCase struct {
-	name string
-	typ  string
-	pkg  Package
-	err  error
+	// inputs
+	name   string
+	output string
+	// expecations
+	typ string
+	pkg Package
+	err error
 }
 
 func TestParse(t *testing.T) {
 	for _, tc := range []TestCase{
 		{
-			name: "important",
-			typ:  "Important",
+			name:   "important.go",
+			output: "important_options.go",
+			typ:    "Important",
 			pkg: Package{
 				Name: "important",
 				Types: map[string]Type{
@@ -64,7 +68,7 @@ func TestParse(t *testing.T) {
 func (tc *TestCase) Run(t *testing.T) {
 	var (
 		// get the fixture for the test case name
-		fi = test.Fixture(t, tc.name)
+		fi = test.Fixture(t, tc.name, tc.output)
 		// write fixtures input file to testing directory
 		dir = test.StageFixture(t, fi)
 	)

@@ -13,7 +13,8 @@ type TestCase struct {
 	// input: name of the test case from which
 	// the fixtures to be tested will be
 	// derived and the package name
-	name string
+	name   string
+	output string
 	// input: type names
 	typ string
 	// input: functional options to render
@@ -24,7 +25,7 @@ type TestCase struct {
 
 func TestOptions(t *testing.T) {
 	for _, test := range []TestCase{
-		{"important", "Important", []Option{
+		{"important", "important_options.go", "Important", []Option{
 			{
 				Name:     "WithField",
 				Type:     "string",
@@ -59,7 +60,8 @@ func TestOptions(t *testing.T) {
 func (tc TestCase) Run(t *testing.T) {
 	var (
 		// read expected output fixture file
-		fi = test.Fixture(t, tc.name)
+		fi             = test.Fixture(t, tc.name+".go", tc.output)
+		expectedOutput = fi.Outputs[tc.output]
 		// construct options type to test
 		options = New(tc.name, tc.typ, tc.funcs...)
 		// output buffer to populate
@@ -76,6 +78,6 @@ func (tc TestCase) Run(t *testing.T) {
 		// require the error to be nil
 		require.Nil(t, err)
 		generated := output.String()
-		assert.Equal(t, fi.Output, generated)
+		assert.Equal(t, expectedOutput, generated)
 	}
 }

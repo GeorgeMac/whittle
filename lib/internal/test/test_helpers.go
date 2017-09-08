@@ -13,8 +13,9 @@ const (
 // FixtureFile is a structure which contains the name
 // input contents and expected output contents fixtures
 type FixtureFile struct {
-	Name          string
-	Input, Output string
+	Name    string
+	Input   string
+	Outputs map[string]string
 }
 
 // StageFixture writes the input contents of the fixture
@@ -26,7 +27,7 @@ func StageFixture(t *testing.T, fi FixtureFile) string {
 		t.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(dir, fi.Name+".go"), []byte(fi.Input), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(dir, fi.Name), []byte(fi.Input), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,15 +36,20 @@ func StageFixture(t *testing.T, fi FixtureFile) string {
 
 // Fixture loads the input and output files for a given
 // fixture name
-func Fixture(t *testing.T, name string) FixtureFile {
-	inpath := filepath.Join(dir, name+".go")
-	output := filepath.Join(dir, name+"_options.go")
-
-	return FixtureFile{
-		Name:   name,
-		Input:  mustRead(t, inpath),
-		Output: mustRead(t, output),
+func Fixture(t *testing.T, input string, outputs ...string) FixtureFile {
+	file := FixtureFile{
+		Name:    input,
+		Input:   mustRead(t, filepath.Join(dir, input)),
+		Outputs: map[string]string{},
 	}
+
+	for _, outPath := range outputs {
+		path := filepath.Join(dir, outPath)
+
+		file.Outputs[outPath] = mustRead(t, path)
+	}
+
+	return file
 }
 
 func mustRead(t *testing.T, path string) string {

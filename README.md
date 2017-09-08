@@ -16,6 +16,6 @@ e.g.
 
 ## Ideas Roadmap
 
+- [ ] generation of table drive test cases
 - [ ] explore generation of implementations for interfaces, with quick mock generation in mind.
 - [ ] quick "constructor" style function insertion, with support for functional options.
-- [ ] generation of table drive test cases
