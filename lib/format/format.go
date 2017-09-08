@@ -7,6 +7,8 @@ import (
 	"golang.org/x/tools/imports"
 )
 
+// FormatTo rewrites the source data formatted with corrected importants
+// to the provider writer w
 func FormatTo(w io.Writer, pkg string, data []byte) (int64, error) {
 	var err error
 
