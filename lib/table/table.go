@@ -39,7 +39,7 @@ func (t Table) WriteTestTo(w io.Writer) (int64, error) {
 		return 0, err
 	}
 
-	return format.FormatTo(w, t.Package, buf.Bytes())
+	return format.To(w, t.Package, buf.Bytes())
 }
 
 // WriteDefTo writes out the table definition to the writer
@@ -49,7 +49,7 @@ func (t Table) WriteDefTo(w io.Writer) (int64, error) {
 		return 0, err
 	}
 
-	return format.FormatTo(w, t.Package, buf.Bytes())
+	return format.To(w, t.Package, buf.Bytes())
 }
 
 var (
