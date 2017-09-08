@@ -12,16 +12,23 @@ import (
 )
 
 var (
+	// ErrTypeNotProvided is returned when the type is empty
 	ErrTypeNotProvided = errors.New("type must be set")
-	ErrTypeNotFound    = errors.New("type not found")
-	ErrUsage           = errors.New("user requested usage")
+	// ErrTypeNotFound is returned when the type cant be found
+	// in the parsed definition
+	ErrTypeNotFound = errors.New("type not found")
+	// ErrUsage is returned when the help command is set and the
+	// usage should be printed
+	ErrUsage = errors.New("user requested usage")
 )
 
+// Command is the structure representation of the options command
 type Command struct {
 	flags *flag.FlagSet
 	typ   string
 }
 
+// Parse reads the slice of arguments and returns the executable Command
 func Parse(args []string) (Command, error) {
 	var (
 		command Command
@@ -48,6 +55,7 @@ func (c Command) discardOutput() {
 	c.flags.SetOutput(ioutil.Discard)
 }
 
+// Usage prints the flags usage and command name to Stderr
 func (c Command) Usage() {
 	defer c.discardOutput()
 	c.flags.SetOutput(os.Stderr)
@@ -55,6 +63,7 @@ func (c Command) Usage() {
 	c.flags.Usage()
 }
 
+// Run executes the options command
 func (c Command) Run() error {
 	if c.typ == "" {
 		return ErrTypeNotProvided
