@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/georgemac/whittle/lib/options"
 	"github.com/georgemac/whittle/lib/parse"
@@ -81,8 +82,17 @@ func (c Command) Run() error {
 
 	funcs := []options.Option{}
 	for _, field := range structType.Fields {
+		method, ok := field.Tags["opts"]
+		if !ok {
+			continue
+		}
+
+		if method == "" {
+			method = fmt.Sprintf("With%s", strings.Title(field.Name))
+		}
+
 		funcs = append(funcs, options.Option{
-			Name:     field.OptionName,
+			Name:     method,
 			Type:     field.Type,
 			Variable: field.Name,
 		})

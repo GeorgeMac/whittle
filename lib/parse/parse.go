@@ -17,7 +17,7 @@ var (
 	// provided directory location
 	ErrExpectedOnePackage = errors.New("expected to find one package")
 
-	optTagMatcher = regexp.MustCompile(`opts(?:\:"(.+?)")?`)
+	tagMatcher = regexp.MustCompile(`([a-z]+)(?:\:"(.+?)")?`)
 )
 
 // Package contains the packages name and the types
@@ -37,9 +37,9 @@ type Type struct {
 // Field represents a field in a struct which have
 // a name and function option name to be used
 type Field struct {
-	Name       string
-	Type       string
-	OptionName string
+	Name string
+	Type string
+	Tags map[string]string
 }
 
 // Parse parses a director, expecting to find a single package
@@ -91,23 +91,21 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 
 func fetchFields(external []*ast.Field) (fields []Field) {
 	for _, field := range external {
-		if tag := field.Tag; tag != nil {
-			if parts := optTagMatcher.FindStringSubmatch(tag.Value); len(parts) > 1 {
-				var (
-					name   = field.Names[0].Name
-					method = parts[1]
-				)
+		if tags := field.Tag; tags != nil {
+			for _, tag := range strings.Split(tags.Value, ",") {
+				if parts := tagMatcher.FindStringSubmatch(tag); len(parts) > 1 {
+					var (
+						name   = field.Names[0].Name
+						tag    = parts[1]
+						method = parts[2]
+					)
 
-				if method == "" {
-					// field -> WithField
-					method = fmt.Sprintf("With%s", strings.Title(name))
+					fields = append(fields, Field{
+						Name: name,
+						Type: typeString(field.Type),
+						Tags: map[string]string{tag: method},
+					})
 				}
-
-				fields = append(fields, Field{
-					Name:       name,
-					Type:       typeString(field.Type),
-					OptionName: method,
-				})
 			}
 		}
 	}
