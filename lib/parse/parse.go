@@ -51,7 +51,7 @@ type Func struct {
 // Parse parses a director, expecting to find a single package
 // It returns a Go representation of the package with the minimal
 // information required for generating options code
-func Parse(dir string, types ...string) (pkg Package, err error) {
+func Parse(dir string) (pkg Package, err error) {
 	fset := token.NewFileSet()
 
 	parsed, err := parser.ParseDir(fset, dir, func(info os.FileInfo) bool {
@@ -73,67 +73,74 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 			// loop over files declarations
 			for _, gdecl := range fi.Decls {
 				switch decl := gdecl.(type) {
-				// if declaration is a general declaration
 				case *ast.GenDecl:
-					// loop over general declarations specs
-					for _, spec := range decl.Specs {
-						// if the spec is a type definition
-						if tspec, ok := spec.(*ast.TypeSpec); ok {
-							switch typ := tspec.Type.(type) {
-							case *ast.StructType:
-								var (
-									name   = tspec.Name.Name
-									fields = fetchFields(typ.Fields.List)
-								)
-
-								if ptyp, ok := pkg.Types[name]; ok {
-									ptyp.Fields = fields
-									pkg.Types[name] = ptyp
-									continue
-								}
-
-								pkg.Types[name] = Type{
-									Name:   name,
-									Fields: fields,
-								}
-							}
-						}
-					}
+					parseStruct(decl, &pkg)
 				case *ast.FuncDecl:
-					if decl.Recv == nil {
-						continue
-					}
-
-					for _, recv := range decl.Recv.List {
-						var (
-							typ = typeString(recv.Type)
-							fn  = Func{Name: decl.Name.Name}
-						)
-
-						if len(typ) < 1 {
-							continue
-						}
-
-						if typ[0] == '*' {
-							typ = typ[1:]
-						}
-
-						if ptyp, ok := pkg.Types[typ]; ok {
-							ptyp.Funcs = append(ptyp.Funcs, fn)
-							pkg.Types[typ] = ptyp
-						} else {
-							pkg.Types[typ] = Type{
-								Name:  typ,
-								Funcs: []Func{fn},
-							}
-						}
-					}
+					parseFunc(decl, &pkg)
 				}
 			}
 		}
 	}
 
 	return
+}
+
+func parseStruct(decl *ast.GenDecl, pkg *Package) {
+	// loop over general declarations specs
+	for _, spec := range decl.Specs {
+		// if the spec is a type definition
+		if tspec, ok := spec.(*ast.TypeSpec); ok {
+			switch typ := tspec.Type.(type) {
+			case *ast.StructType:
+				var (
+					name   = tspec.Name.Name
+					fields = fetchFields(typ.Fields.List)
+				)
+
+				if ptyp, ok := pkg.Types[name]; ok {
+					ptyp.Fields = fields
+					pkg.Types[name] = ptyp
+					continue
+				}
+
+				pkg.Types[name] = Type{
+					Name:   name,
+					Fields: fields,
+				}
+			}
+		}
+	}
+}
+
+func parseFunc(decl *ast.FuncDecl, pkg *Package) {
+	if decl.Recv == nil {
+		return
+	}
+
+	for _, recv := range decl.Recv.List {
+		var (
+			typ = typeString(recv.Type)
+			fn  = Func{Name: decl.Name.Name}
+		)
+
+		if len(typ) < 1 {
+			continue
+		}
+
+		if typ[0] == '*' {
+			typ = typ[1:]
+		}
+
+		if ptyp, ok := pkg.Types[typ]; ok {
+			ptyp.Funcs = append(ptyp.Funcs, fn)
+			pkg.Types[typ] = ptyp
+		} else {
+			pkg.Types[typ] = Type{
+				Name:  typ,
+				Funcs: []Func{fn},
+			}
+		}
+	}
 }
 
 func fetchFields(external []*ast.Field) (fields []Field) {

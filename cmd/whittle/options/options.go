@@ -72,7 +72,7 @@ func (c Command) Run() error {
 		return ErrTypeNotProvided
 	}
 
-	pkg, err := parse.Parse(".", c.typ)
+	pkg, err := parse.Parse(".")
 	if err != nil {
 		return err
 	}

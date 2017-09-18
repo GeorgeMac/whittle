@@ -71,7 +71,7 @@ func (c Command) Run() error {
 		return errors.Wrap(ErrMissingArgument, "table: type")
 	}
 
-	pkg, err := parse.Parse(".", c.typ)
+	pkg, err := parse.Parse(".")
 	if err != nil {
 		return errors.Wrap(err, "table")
 	}
@@ -93,11 +93,11 @@ func (c Command) Run() error {
 		return errors.Wrap(err, "table")
 	}
 
-	if _, err := table.WriteTestTo(fi); err != nil {
+	if _, err = table.WriteTestTo(fi); err != nil {
 		return errors.Wrap(err, "table")
 	}
 
-	if err := fi.Close(); err != nil {
+	if err = fi.Close(); err != nil {
 		return errors.Wrap(err, "table")
 	}
 
@@ -106,7 +106,7 @@ func (c Command) Run() error {
 		return errors.Wrap(err, "table")
 	}
 
-	if _, err := table.WriteDefTo(fi); err != nil {
+	if _, err = table.WriteDefTo(fi); err != nil {
 		return errors.Wrap(err, "table")
 	}
 
