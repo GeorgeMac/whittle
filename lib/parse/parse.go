@@ -32,6 +32,7 @@ type Package struct {
 type Type struct {
 	Name   string
 	Fields []Field
+	Funcs  []Func
 }
 
 // Field represents a field in a struct which have
@@ -40,6 +41,11 @@ type Field struct {
 	Name string
 	Type string
 	Tags map[string]string
+}
+
+// Func represntes function definition
+type Func struct {
+	Name string
 }
 
 // Parse parses a director, expecting to find a single package
@@ -65,19 +71,56 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 
 		for _, fi := range ppkg.Files {
 			// loop over files declarations
-			for _, decl := range fi.Decls {
+			for _, gdecl := range fi.Decls {
+				switch decl := gdecl.(type) {
 				// if declaration is a general declaration
-				if gdecl, ok := decl.(*ast.GenDecl); ok {
+				case *ast.GenDecl:
 					// loop over general declarations specs
-					for _, spec := range gdecl.Specs {
+					for _, spec := range decl.Specs {
 						// if the spec is a type definition
 						if tspec, ok := spec.(*ast.TypeSpec); ok {
-							// if spec is for a struct type
-							if str, ok := tspec.Type.(*ast.StructType); ok {
-								pkg.Types[tspec.Name.Name] = Type{
-									Name:   tspec.Name.Name,
-									Fields: fetchFields(str.Fields.List),
+							switch typ := tspec.Type.(type) {
+							case *ast.StructType:
+								var (
+									name   = tspec.Name.Name
+									fields = fetchFields(typ.Fields.List)
+								)
+
+								if ptyp, ok := pkg.Types[name]; ok {
+									ptyp.Fields = fields
+									pkg.Types[name] = ptyp
+									continue
 								}
+
+								pkg.Types[name] = Type{
+									Name:   name,
+									Fields: fields,
+								}
+							}
+						}
+					}
+				case *ast.FuncDecl:
+					for _, recv := range decl.Recv.List {
+						var (
+							typ = typeString(recv.Type)
+							fn  = Func{Name: decl.Name.Name}
+						)
+
+						if len(typ) < 1 {
+							continue
+						}
+
+						if typ[0] == '*' {
+							typ = typ[1:]
+						}
+
+						if ptyp, ok := pkg.Types[typ]; ok {
+							ptyp.Funcs = append(ptyp.Funcs, fn)
+							pkg.Types[typ] = ptyp
+						} else {
+							pkg.Types[typ] = Type{
+								Name:  typ,
+								Funcs: []Func{fn},
 							}
 						}
 					}
