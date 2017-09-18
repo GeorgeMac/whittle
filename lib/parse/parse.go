@@ -100,6 +100,10 @@ func Parse(dir string, types ...string) (pkg Package, err error) {
 						}
 					}
 				case *ast.FuncDecl:
+					if decl.Recv == nil {
+						continue
+					}
+
 					for _, recv := range decl.Recv.List {
 						var (
 							typ = typeString(recv.Type)
