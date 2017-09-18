@@ -1,6 +1,7 @@
 package options
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -37,7 +38,7 @@ func Parse(args []string) (Command, error) {
 	)
 
 	command.flags = flag.NewFlagSet("options", flag.ContinueOnError)
-	command.discardOutput()
+	command.flags.SetOutput(ioutil.Discard)
 	command.flags.StringVar(&command.typ, "type", "", "type for options to be generated for")
 	command.flags.BoolVar(&help, "help", false, "print usage")
 
@@ -52,16 +53,17 @@ func Parse(args []string) (Command, error) {
 	return command, nil
 }
 
-func (c Command) discardOutput() {
-	c.flags.SetOutput(ioutil.Discard)
-}
-
 // Usage prints the flags usage and command name to Stderr
-func (c Command) Usage() {
-	defer c.discardOutput()
-	c.flags.SetOutput(os.Stderr)
-	fmt.Println("options <options>")
+func (c Command) Usage() string {
+	defer c.flags.SetOutput(ioutil.Discard)
+
+	buf := &bytes.Buffer{}
+	c.flags.SetOutput(buf)
+
+	fmt.Fprintln(buf, "options <options>")
 	c.flags.Usage()
+
+	return buf.String()
 }
 
 // Run executes the options command
