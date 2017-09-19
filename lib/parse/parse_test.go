@@ -85,7 +85,7 @@ func (tc *TestCase) Run(t *testing.T) {
 	)
 
 	// run parse with staged directory and test case type
-	pkg, err := Parse(dir, tc.typ)
+	pkg, err := Parse(dir)
 
 	// ensure response is as expected
 	require.Equal(t, tc.err, err)
