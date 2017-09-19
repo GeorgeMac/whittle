@@ -21,6 +21,33 @@ func help() {
 	os.Exit(1)
 }
 
+// Parser is an interface for types which parse arguments and
+// returns Command types to be ran
+type Parser interface {
+	Parse(args []string) (Command, error)
+}
+
+// ParserFunc is a function which matches the Parser interface Parse function signature
+type ParserFunc func([]string) (Command, error)
+
+// Parse delegates the call to the receiver
+func (p ParserFunc) Parse(args []string) (Command, error) { return p(args) }
+
+// Command is something which can be Ran or a Usage string be produced upon
+type Command interface {
+	Run() error
+	Usage() string
+}
+
+var (
+	optionsCommand ParserFunc = func(args []string) (Command, error) { return options.Parse(args) }
+	tableCommand   ParserFunc = func(args []string) (Command, error) { return table.Parse(args) }
+	commands                  = map[string]Parser{
+		"options": optionsCommand,
+		"table":   tableCommand,
+	}
+)
+
 func main() {
 	if len(os.Args) < 2 {
 		help()
@@ -31,30 +58,11 @@ func main() {
 		args    = os.Args[2:]
 	)
 
-	switch command {
-	case "options":
-		command, err := options.Parse(args)
+	if cmd, ok := commands[command]; ok {
+		command, err := cmd.Parse(args)
 		if err != nil {
-			if cause := errors.Cause(err); cause == options.ErrUsage || cause == flag.ErrHelp {
+			if cause := errors.Cause(err); cause == options.ErrUsage || cause == table.ErrUsage || cause == flag.ErrHelp {
 				fmt.Print("whittle ", command.Usage())
-
-			} else {
-				fmt.Println(err)
-			}
-
-			os.Exit(1)
-		}
-
-		if err := command.Run(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	case "table":
-		command, err := table.Parse(args)
-		if err != nil {
-			if cause := errors.Cause(err); cause == table.ErrUsage || cause == flag.ErrHelp {
-				fmt.Print("whittle ", command.Usage())
-
 			} else {
 				fmt.Println(err)
 			}
@@ -67,7 +75,8 @@ func main() {
 			os.Exit(1)
 		}
 
-	default:
-		help()
+		return
 	}
+
+	help()
 }
