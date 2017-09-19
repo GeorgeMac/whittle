@@ -10,16 +10,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-func printUsage() {
-	fmt.Println(`whittle [cmd] <flags>`)
-	fmt.Println(`commands:`)
-	fmt.Println("\toptions - generate functional options for a type")
-}
+var (
+	commands = map[string]Parser{
+		"options": ParserFunc(func(args []string) (Command, error) { return options.Parse(args) }),
+		"table":   ParserFunc(func(args []string) (Command, error) { return table.Parse(args) }),
+	}
 
-func help() {
-	printUsage()
-	os.Exit(1)
-}
+	usageErrors = ErrorCauses{flag.ErrHelp, options.ErrUsage, table.ErrUsage}
+)
 
 // Parser is an interface for types which parse arguments and
 // returns Command types to be ran
@@ -39,14 +37,32 @@ type Command interface {
 	Usage() string
 }
 
-var (
-	optionsCommand ParserFunc = func(args []string) (Command, error) { return options.Parse(args) }
-	tableCommand   ParserFunc = func(args []string) (Command, error) { return table.Parse(args) }
-	commands                  = map[string]Parser{
-		"options": optionsCommand,
-		"table":   tableCommand,
+// ErrorCauses is a slice of errors
+type ErrorCauses []error
+
+// ContainsCause returns true if the cause of err is in the
+// ErrorCauses slice
+func (e ErrorCauses) ContainsCause(err error) bool {
+	for _, cause := range e {
+		if errors.Cause(err) == cause {
+			return true
+		}
 	}
-)
+
+	return false
+}
+
+func printUsage() {
+	fmt.Println(`whittle [cmd] <flags>`)
+	fmt.Println(`commands:`)
+	fmt.Println("\toptions - generate functional options for a type")
+	fmt.Println("\ttable - generate table driven tests for a type")
+}
+
+func help() {
+	printUsage()
+	os.Exit(1)
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -61,7 +77,7 @@ func main() {
 	if cmd, ok := commands[command]; ok {
 		command, err := cmd.Parse(args)
 		if err != nil {
-			if cause := errors.Cause(err); cause == options.ErrUsage || cause == table.ErrUsage || cause == flag.ErrHelp {
+			if usageErrors.ContainsCause(err) {
 				fmt.Print("whittle ", command.Usage())
 			} else {
 				fmt.Println(err)
