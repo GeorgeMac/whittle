@@ -1,4 +1,4 @@
-package options
+package table
 
 import (
 	"bytes"
@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/georgemac/whittle/lib/options"
 	"github.com/georgemac/whittle/lib/parse"
+	"github.com/georgemac/whittle/lib/table"
 	"github.com/pkg/errors"
 )
 
 var (
-	// ErrTypeNotProvided is returned when the type is empty
-	ErrTypeNotProvided = errors.New("type must be set")
+	// ErrMissingArgument is returned when a argument is not set
+	ErrMissingArgument = errors.New("must be set")
 	// ErrTypeNotFound is returned when the type cant be found
 	// in the parsed definition
 	ErrTypeNotFound = errors.New("type not found")
@@ -24,7 +23,7 @@ var (
 	ErrUsage = errors.New("user requested usage")
 )
 
-// Command is the structure representation of the options command
+// Command is the structure representation of the table command
 type Command struct {
 	flags *flag.FlagSet
 	typ   string
@@ -37,13 +36,13 @@ func Parse(args []string) (Command, error) {
 		help    bool
 	)
 
-	command.flags = flag.NewFlagSet("options", flag.ContinueOnError)
+	command.flags = flag.NewFlagSet("table", flag.ContinueOnError)
 	command.flags.SetOutput(ioutil.Discard)
-	command.flags.StringVar(&command.typ, "type", "", "type for options to be generated for")
+	command.flags.StringVar(&command.typ, "type", "", "type for table to be generated for")
 	command.flags.BoolVar(&help, "help", false, "print usage")
 
 	if err := command.flags.Parse(args); err != nil {
-		return command, errors.Wrap(err, "options")
+		return command, errors.Wrap(err, "table")
 	}
 
 	if help {
@@ -69,44 +68,46 @@ func (c Command) Usage() string {
 // Run executes the options command
 func (c Command) Run() error {
 	if c.typ == "" {
-		return ErrTypeNotProvided
+		return errors.Wrap(ErrMissingArgument, "table: type")
 	}
 
 	pkg, err := parse.Parse(".")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "table")
 	}
 
 	structType, ok := pkg.Types[c.typ]
 	if !ok {
-		return ErrTypeNotFound
+		return errors.Wrap(ErrTypeNotFound, "table")
 	}
 
-	funcs := []options.Option{}
-	for _, field := range structType.Fields {
-		method, ok := field.Tags["opts"]
-		if !ok {
-			continue
-		}
-
-		if method == "" {
-			method = fmt.Sprintf("With%s", strings.Title(field.Name))
-		}
-
-		funcs = append(funcs, options.Option{
-			Name:     method,
-			Type:     field.Type,
-			Variable: field.Name,
-		})
+	var funcs []string
+	for _, fn := range structType.Funcs {
+		funcs = append(funcs, fn.Name)
 	}
 
-	fi, err := os.Create(fmt.Sprintf("./%s_options.go", pkg.Name))
+	table := table.New(pkg.Name, c.typ, funcs...)
+
+	fi, err := os.Create(fmt.Sprintf("./%s_test.go", pkg.Name))
 	if err != nil {
-		return errors.Wrap(err, "options")
+		return errors.Wrap(err, "table")
 	}
 
-	if _, err := options.New(pkg.Name, structType.Name, funcs...).WriteTo(fi); err != nil {
-		return errors.Wrap(err, "options")
+	if _, err = table.WriteTestTo(fi); err != nil {
+		return errors.Wrap(err, "table")
+	}
+
+	if err = fi.Close(); err != nil {
+		return errors.Wrap(err, "table")
+	}
+
+	fi, err = os.Create(fmt.Sprintf("./%s_table_test.go", pkg.Name))
+	if err != nil {
+		return errors.Wrap(err, "table")
+	}
+
+	if _, err = table.WriteDefTo(fi); err != nil {
+		return errors.Wrap(err, "table")
 	}
 
 	return nil

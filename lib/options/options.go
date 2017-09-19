@@ -2,12 +2,12 @@ package options
 
 import (
 	"bytes"
-	"go/format"
 	"io"
 	"strings"
 	"text/template"
 
-	"golang.org/x/tools/imports"
+	"github.com/georgemac/whittle/lib/format"
+	"github.com/pkg/errors"
 )
 
 // Options is a type which can be written to.
@@ -49,21 +49,10 @@ func (o Options) Var() string {
 func (o *Options) WriteTo(w io.Writer) (int64, error) {
 	buf := &bytes.Buffer{}
 	if err := optionsTmpl.Execute(buf, o); err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "options")
 	}
 
-	data, err := format.Source(buf.Bytes())
-	if err != nil {
-		return 0, err
-	}
-
-	data, err = imports.Process(o.Package, data, nil)
-	if err != nil {
-		return 0, err
-	}
-
-	n, err := w.Write(data)
-	return int64(n), err
+	return format.To(w, o.Package, buf.Bytes())
 }
 
 var (

@@ -9,16 +9,18 @@ import (
 )
 
 type TestCase struct {
+	// inputs
 	name string
-	typ  string
-	pkg  Package
-	err  error
+	// expecations
+	typ string
+	pkg Package
+	err error
 }
 
 func TestParse(t *testing.T) {
 	for _, tc := range []TestCase{
 		{
-			name: "important",
+			name: "important.go",
 			typ:  "Important",
 			pkg: Package{
 				Name: "important",
@@ -27,31 +29,44 @@ func TestParse(t *testing.T) {
 						Name: "Important",
 						Fields: []Field{
 							{
-								Name:       "field",
-								Type:       "string",
-								OptionName: "WithField",
+								Name: "field",
+								Type: "string",
+								Tags: map[string]string{"opts": ""},
 							},
 							{
-								Name:       "attribute",
-								Type:       "int",
-								OptionName: "WithAttribute",
+								Name: "attribute",
+								Type: "int",
+								Tags: map[string]string{"opts": ""},
 							},
 							{
-								Name:       "mapOfThings",
-								Type:       "map[string]string",
-								OptionName: "WithThings",
+								Name: "mapOfThings",
+								Type: "map[string]string",
+								Tags: map[string]string{"opts": "WithThings"},
 							},
 							{
-								Name:       "pointerToThing",
-								Type:       "*string",
-								OptionName: "WithPointerToThing",
+								Name: "pointerToThing",
+								Type: "*string",
+								Tags: map[string]string{"opts": ""},
 							},
 							{
-								Name:       "pointerToStruct",
-								Type:       "*os.File",
-								OptionName: "WithPointerToStruct",
+								Name: "pointerToStruct",
+								Type: "*os.File",
+								Tags: map[string]string{"opts": ""},
 							},
 						},
+					},
+				},
+			},
+		},
+		{
+			name: "processor.go",
+			typ:  "Processor",
+			pkg: Package{
+				Name: "processor",
+				Types: map[string]Type{
+					"Processor": {
+						Name:  "Processor",
+						Funcs: []Func{{"Run"}},
 					},
 				},
 			},
@@ -70,7 +85,7 @@ func (tc *TestCase) Run(t *testing.T) {
 	)
 
 	// run parse with staged directory and test case type
-	pkg, err := Parse(dir, tc.typ)
+	pkg, err := Parse(dir)
 
 	// ensure response is as expected
 	require.Equal(t, tc.err, err)
